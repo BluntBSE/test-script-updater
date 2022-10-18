@@ -1,0 +1,17 @@
+MVP:
+
+For a given list of test scripts submitted by cubic:
+    -Check if Test Case Status (column I) is "Ready for Review"
+    If yes:
+    -Search Asana ID fields for C Number. If not found in ID fields, search name strings.
+
+For every task found:
+
+Update the test script status to "With MBTA for Review"
+Assign tag: "Automatically Modified"
+
+
+With tasks not found:
+
+In output folder, generate a CSV of Test Scripts received, but were not found in Asana (these may be unscheduled or new tests)
+???In output folder, handle test Expected, not Received???
