@@ -23,7 +23,7 @@
 ##Create a new CSV containing all test cases received for which we received a C number, but there are no C Numbers in our Asana records. These are new test cases
 ##Create a CSV containing all test cases where we had an Asana record, but did not receive a C number. These are potentially missing test cases.
 
-
+##Test Script Review Status GID = 1184137262520341
 ##Reference Review Required Task GID = 1202894410931244
 ##Reference Approved Task GID = 1202632050244277
 ##Custom Field 'ID Number' GID = 515737795293097
@@ -37,6 +37,7 @@ import pandas
 import numpy
 import asana
 import re ##Regex -- used for matching name string
+import json
 
 ##Put your token in a 'credentials.py' in the same directory as this script
 sys.path.append(os.path.relpath('.\credentials.py'))
@@ -47,14 +48,13 @@ from credentials import token
 
 ##Set token equal to a Personal Access Token
 
-""" token = '1/1200584565016332:edc42f4e606085fcdbea52f76ad4e17a' """
+
 client = asana.Client.access_token(token)
 workspace = '15492006741476'
 
-mytask = client.tasks.get_task('1203191978331226')
+""" mytask = client.tasks.get_task('1202894410931244')
 taskname = mytask
-print(taskname) 
-
+print(taskname)   """
 
 ##SET UP FILE STRUCTUR
 ##GET FILE IN INPUT FOLDER. DO NOT ALLOW MORE THAN ONE FILE IN INPUT FOLDER.
@@ -94,6 +94,19 @@ def getIndexofIDNumberField(arr):
     return None
 
 
+def getIndexofReviewStatusField(arr):
+    for ind, el in enumerate(arr):
+    ##    print("INDEX OF")
+    ##    print(ind)
+    ##    print(el)
+        
+        if el['gid'] == '1184137262520341':
+           return ind
+    print('Test review status not found')
+    return None
+
+
+
 ##If for whatever reason there are multiple tasks that start with the C Number in question, try to narrow in on the one with a defined ID Number field.
 def searchFieldForCNumber(arr, cnum):
     output = []
@@ -123,8 +136,18 @@ def searchNameForCNumber(cnum):
             print('!!ERROR!! Cannot resolve single test case. Add to list for human verification')
 
 
+##Modify custom fields. Custom_fields is an arr stored as an attribute on task objects.
+def modifyCustomField(custom_fields,fname,attribute,input):
+    output = custom_fields
+    for ind, el in enumerate(output):
+        if el['name'] == fname:
+            output[ind][attribute] = input
+            break
+    return output
 
-
+##['enum_value']
+with_mbta_for_review = {'gid': '1184137262520343', 'color': 'yellow', 'enabled': True, 'name': 'With MBTA - review required', 'resource_type': 'enum_option'}, 
+##['display_value: 'With MBTA - review required' 
 
 ##Search Asana for each ID contained in your data frame and start handling it
 
@@ -133,5 +156,16 @@ def UpdateTestScripts(data_frame):
         task = searchNameForCNumber(el)
         if task != None:
             print('Confirmed Asana Contains CNumber for ' + task[0]['name'])
+            gid = task[0]['gid']
+            fields = task[0]['custom_fields']
+            print (type(fields))
+            
+    
+            updatedTRS = modifyCustomField(fields,'Test Script Review Status','enum_value',with_mbta_for_review)
+
+            client.tasks.update_task(gid, {'custom_fields': {'1184137262520341': '1184137262520343'}})
+            
+##MAKE SURE YOU ARE USING TEST DATA UNLESS YOU WANT TO MAKE UPDATES
+UpdateTestScripts(data_frame)
 
 
